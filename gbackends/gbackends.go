@@ -17,6 +17,8 @@
 package gbackends
 
 import (
+	"bytes"
+	"errors"
 	"fmt"
 
 	"github.com/boltdb/bolt"
@@ -26,6 +28,7 @@ type DB interface {
 	Get(value []byte) ([]byte, error)
 	Put(key []byte, value []byte) error
 	Del(key []byte)
+	Query(key []byte, t string) (map[string][]byte, error)
 	Close() error
 }
 
@@ -37,6 +40,14 @@ type BoltBackEnd struct {
 }
 
 func NewBoltBackEnd(dbname string) (*BoltBackEnd, error) {
+	return getBoltBackEnd(dbname)
+}
+
+func GetBoltBackEnd(dbname string) (*BoltBackEnd, error) {
+	return getBoltBackEnd(dbname)
+}
+
+func getBoltBackEnd(dbname string) (*BoltBackEnd, error) {
 	var db BoltBackEnd
 	err := db.Open(dbname)
 	if err != nil {
@@ -126,6 +137,36 @@ func (b *BoltBackEnd) Len() (value int) {
 	return
 }
 
+func (b *BoltBackEnd) Query(name []byte, t string) (result map[string][]byte, err error) {
+	err = b.Db.View(func(tx *bolt.Tx) error {
+		buck := tx.Bucket([]byte(b.bucketname))
+		// got the bucket now get the cursor
+		c := buck.Cursor()
+		// got the cursor now iterates over the k, values
+		result = make(map[string][]byte, 0)
+		// iterate over the elements using hasPrefix
+		var search func(s, name []byte) bool
+
+		switch {
+		case t == "p":
+			search = bytes.HasPrefix
+			name = name[:len(name)-1]
+		case t == "s":
+			search = bytes.HasSuffix
+			name = name[1:]
+			fmt.Println("suffix is: ", string(name))
+		}
+
+		for k, v := c.Seek(name); search(k, name); k, v = c.Next() {
+			result[string(k)] = v
+		}
+
+		return nil
+	})
+
+	return
+}
+
 type MapBackEnd struct {
 	Db map[string]string
 }
@@ -158,4 +199,8 @@ func (m *MapBackEnd) Close() error {
 
 	// does nothing here to satisfy the DB interface
 	return nil
+}
+
+func (m *MapBackEnd) Query(key []byte, str string) (map[string][]byte, error) {
+	return nil, errors.New("not implemented")
 }
