@@ -1,5 +1,0 @@
-Add to PUT and GET method a slice of structs
-to marshall and unmarshall every time the 
-struct should be containing all the info
-found on the desc and deps files into the 
-arch db.

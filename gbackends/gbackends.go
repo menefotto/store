@@ -154,7 +154,6 @@ func (b *BoltBackEnd) Query(name []byte, t string) (result map[string][]byte, er
 		case t == "s":
 			search = bytes.HasSuffix
 			name = name[1:]
-			fmt.Println("suffix is: ", string(name))
 		}
 
 		for k, v := c.Seek(name); search(k, name); k, v = c.Next() {

@@ -10,7 +10,6 @@ func TestBoltBackEnd(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-
 	defer db.Close()
 
 	err1 := db.Put([]byte("carlo"), []byte("locci"))
