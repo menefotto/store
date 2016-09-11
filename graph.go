@@ -13,7 +13,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/sonic/src/graph/gbackends"
+	"github.com/sonic/lib/graph/gbackends"
 )
 
 // defines the Edge interface

@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/sonic/src/graph/gbackends"
+	"github.com/sonic/lib/graph/gbackends"
 )
 
 func TestGraph(t *testing.T) {
