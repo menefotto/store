@@ -140,25 +140,26 @@ func (b *BoltBackEnd) Len() (value int) {
 func (b *BoltBackEnd) Query(name []byte, t string) (result map[string][]byte, err error) {
 	err = b.Db.View(func(tx *bolt.Tx) error {
 		buck := tx.Bucket([]byte(b.bucketname))
-		// got the bucket now get the cursor
-		c := buck.Cursor()
 		// got the cursor now iterates over the k, values
 		result = make(map[string][]byte, 0)
 		// iterate over the elements using hasPrefix
-		var search func(s, name []byte) bool
+		var Search func(s, name []byte) bool
 
 		switch {
 		case t == "p":
-			search = bytes.HasPrefix
+			Search = bytes.HasPrefix
 			name = name[:len(name)-1]
 		case t == "s":
-			search = bytes.HasSuffix
+			Search = bytes.HasSuffix
 			name = name[1:]
 		}
 
-		for k, v := c.Seek(name); search(k, name); k, v = c.Next() {
-			result[string(k)] = v
-		}
+		buck.ForEach(func(k, v []byte) error {
+			if Search(k, name) {
+				result[string(k)] = v
+			}
+			return nil
+		})
 
 		return nil
 	})
