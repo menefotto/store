@@ -101,9 +101,9 @@ func (g *Graph) BackEnd() gbackends.DB {
 //helper functions for debugging memory backend
 
 func MarshallToDisk(g interface{}) error {
-	switch t := g.(type) {
-	case gbackends.MapBackEnd:
-		b, err := json.Marshal(t)
+	switch g.(type) {
+	case *gbackends.MapBackEnd:
+		b, err := json.Marshal(g)
 		if err != nil {
 			return err
 		}
@@ -124,9 +124,9 @@ func MarshallToDisk(g interface{}) error {
 	return nil
 }
 
-func UnmarshalFromDisk(g interface{}, filename string) error {
+func UnmarshalFromDisk(g interface{}) error {
 	switch g.(type) {
-	case gbackends.MapBackEnd:
+	case *gbackends.MapBackEnd:
 		f, err := os.Open("graph.dump")
 		defer f.Close()
 		if err != nil {
@@ -157,7 +157,7 @@ func UnmarshalFromDisk(g interface{}, filename string) error {
 
 func PrettyPrint(g interface{}) error {
 	switch t := g.(type) {
-	case gbackends.MapBackEnd:
+	case *gbackends.MapBackEnd:
 		for key, value := range t.Db {
 			fmt.Println("-----------------------------------------")
 			fmt.Println("Key is: ", key)

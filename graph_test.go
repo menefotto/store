@@ -19,6 +19,12 @@ func TestGraph(t *testing.T) {
 	g := NewGraph(&db)
 	_ = g.Put([]byte("carlo"), []byte("ciao"))
 	fmt.Println(db.Len())
+
+	a, err := g.GetEdge("carlo")
+	if err != nil {
+		t.Fatal(err)
+	}
+	a.Data()
 	os.Remove("test.db")
 }
 
@@ -61,6 +67,7 @@ func TestGraphEdgeMethods(t *testing.T) {
 	}
 
 	//fmt.Printf("String is: %s\n", s)
+	_ = g.BackEnd()
 
 	os.Remove("test.db")
 }
@@ -83,10 +90,12 @@ func TestGraphAddDelPut(t *testing.T) {
 	if db.Len() != 0 {
 		t.Error("Failed to delete the key/value")
 	}
+
+	g.DelEdge("carlo")
 	t.Log("Key/Value deleted!")
 	err = PrettyPrint(db)
-	if err != nil {
-		t.Logf("Failed to print because: \n %s", err)
+	if err == nil {
+		t.Error("should have not printed")
 	}
 	os.Remove("test.db")
 }
@@ -99,6 +108,31 @@ func TestGraphMemory(t *testing.T) {
 	if err != nil {
 		t.Errorf("Error in Get %v\n", err)
 	}
-	t.Logf("Value is: %v\n", string(val))
+	if string(val) != "locci" {
+		t.Errorf("they should be equal\n")
+	}
+	err = MarshallToDisk(db)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	dbnew := gbackends.NewMapBackEnd()
+	err = UnmarshalFromDisk(dbnew)
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = UnmarshalFromDisk("test")
+	if err == nil {
+		t.Fatal("shoul not be possible to unmarshall a string")
+	}
+	err = MarshallToDisk("test")
+	if err == nil {
+		t.Fatal("shoul not be possible to unmarshall a string")
+	}
+	err = PrettyPrint(db)
+	if err != nil {
+		t.Error(err)
+	}
+
 	db.Del([]byte("carlo"))
 }

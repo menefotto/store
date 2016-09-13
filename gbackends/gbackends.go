@@ -60,7 +60,11 @@ func (b *BoltBackEnd) Open(name string) error {
 	var err error
 	b.Db, err = bolt.Open(name, 0600, nil)
 	if err != nil {
-		defer b.Db.Close()
+		defer func() {
+			if b.Db != nil {
+				b.Db.Close()
+			}
+		}()
 		return err
 	}
 
