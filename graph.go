@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/errors"
 	"github.com/sonic/lib/graph/gbackends"
 )
 
@@ -32,7 +33,7 @@ func NewAny(v interface{}) (*Any, error) {
 	a := &Any{Buffer: make([]byte, 0)}
 	_, err := a.Serialize(v)
 	if err != nil {
-		return a, err
+		return a, errors.Wrap(err)()
 	}
 	return a, nil
 }
@@ -40,7 +41,7 @@ func NewAny(v interface{}) (*Any, error) {
 func (a *Any) Serialize(v interface{}) ([]byte, error) {
 	b, err := json.Marshal(v)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err)()
 	}
 	a.Buffer = append(a.Buffer, b...)
 
@@ -50,7 +51,7 @@ func (a *Any) Serialize(v interface{}) ([]byte, error) {
 func (a *Any) Deserialize(v interface{}) error {
 	err := json.Unmarshal(a.Buffer, v)
 	if err != nil {
-		return err
+		return errors.Wrap(err)()
 	}
 
 	return nil
@@ -99,6 +100,7 @@ func (g *Graph) BackEnd() gbackends.DB {
 }
 
 //helper functions for debugging memory backend
+// do not implement better errors
 
 func MarshallToDisk(g interface{}) error {
 	switch g.(type) {

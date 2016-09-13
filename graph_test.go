@@ -12,7 +12,7 @@ func TestGraph(t *testing.T) {
 	var db gbackends.BoltBackEnd
 	err := db.Open("test.db")
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 	defer db.Close()
 

@@ -18,10 +18,10 @@ package gbackends
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 
 	"github.com/boltdb/bolt"
+	"github.com/sonic/lib/errors"
 )
 
 type DB interface {
@@ -32,7 +32,7 @@ type DB interface {
 	Close() error
 }
 
-var ErrNotFound error = fmt.Errorf("key not found")
+var ErrNotFound error = fmt.Errorf("key not found\n")
 
 type BoltBackEnd struct {
 	Db         *bolt.DB
@@ -60,12 +60,7 @@ func (b *BoltBackEnd) Open(name string) error {
 	var err error
 	b.Db, err = bolt.Open(name, 0600, nil)
 	if err != nil {
-		defer func() {
-			if b.Db != nil {
-				b.Db.Close()
-			}
-		}()
-		return err
+		return errors.Wrap(err)()
 	}
 
 	b.bucketname = "all"
@@ -73,8 +68,7 @@ func (b *BoltBackEnd) Open(name string) error {
 	_ = b.Db.Update(func(tx *bolt.Tx) error {
 		_, err := tx.CreateBucketIfNotExists([]byte(b.bucketname))
 		if err != nil {
-			defer b.Db.Close()
-			return err
+			return errors.Wrap(err)()
 		}
 		return nil
 	})
@@ -83,7 +77,10 @@ func (b *BoltBackEnd) Open(name string) error {
 }
 
 func (b *BoltBackEnd) Close() error {
-	return b.Db.Close()
+	if b.Db != nil {
+		return b.Db.Close()
+	}
+	return nil
 }
 
 func (b *BoltBackEnd) Get(value []byte) (result []byte, err error) {
@@ -94,7 +91,7 @@ func (b *BoltBackEnd) Get(value []byte) (result []byte, err error) {
 		result = buck.Get(value)
 		// value assigned directly to named return value
 		if result == nil {
-			return ErrNotFound
+			return errors.Wrap(ErrNotFound)()
 		}
 		return nil
 	})
@@ -107,7 +104,7 @@ func (b *BoltBackEnd) Put(key []byte, value []byte) error {
 		// not checking since it alway exist
 		err := buck.Put(key, value)
 		if err != nil {
-			return err
+			return errors.Wrap(err)()
 		}
 		return nil
 	})
