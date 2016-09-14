@@ -20,13 +20,12 @@ func TestBoltBackEnd(t *testing.T) {
 	if err != nil {
 		t.Error(err2)
 	}
-	v, err := db.Get([]byte("carlo"))
+	_, err = db.Get([]byte("carlo"))
 	if err != nil {
 		t.Error(err)
 	}
-	t.Logf("value for key = carlo is : %s\n", v)
 	_, err = db.Get([]byte("ca"))
-	if err != ErrNotFound {
+	if err == nil {
 		t.Error(err)
 	}
 
