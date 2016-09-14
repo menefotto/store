@@ -15,7 +15,7 @@ import (
 	"strings"
 
 	"github.com/sonic/lib/errors"
-	"github.com/sonic/lib/store/gbackends"
+	"github.com/sonic/lib/store/backends"
 	"github.com/sonic/lib/utils/compressutils"
 )
 
@@ -74,10 +74,10 @@ func (a *Any) Data(v interface{}) ([]byte, error) {
 var ErrNotSupported error = fmt.Errorf("back end not supported")
 
 type Store struct {
-	db gbackends.DB
+	db backends.DB
 }
 
-func New(g gbackends.DB) *Store {
+func New(g backends.DB) *Store {
 	return &Store{db: g}
 }
 
@@ -147,15 +147,15 @@ func (g *Store) Del(key string) {
 
 func (g *Store) Close() {
 	switch g.db.(type) {
-	case *gbackends.BoltBackEnd:
-		bolt := g.db.(*gbackends.BoltBackEnd)
+	case *backends.Bolt:
+		bolt := g.db.(*backends.Bolt)
 		bolt.Close()
 	default:
 		return
 	}
 }
 
-func (g *Store) BackEnd() gbackends.DB {
+func (g *Store) BackEnd() backends.DB {
 	return g.db
 }
 
@@ -164,7 +164,7 @@ func (g *Store) BackEnd() gbackends.DB {
 
 func MarshallToDisk(g interface{}) error {
 	switch g.(type) {
-	case *gbackends.MapBackEnd:
+	case *backends.Mem:
 		b, err := json.Marshal(g)
 		if err != nil {
 			return err
@@ -188,7 +188,7 @@ func MarshallToDisk(g interface{}) error {
 
 func UnmarshalFromDisk(g interface{}) error {
 	switch g.(type) {
-	case *gbackends.MapBackEnd:
+	case *backends.Mem:
 		f, err := os.Open("store.dump")
 		defer f.Close()
 		if err != nil {
@@ -219,7 +219,7 @@ func UnmarshalFromDisk(g interface{}) error {
 
 func PrettyPrint(g interface{}) error {
 	switch t := g.(type) {
-	case *gbackends.MapBackEnd:
+	case *backends.Mem:
 		for key, value := range t.Db {
 			fmt.Println("-----------------------------------------")
 			fmt.Println("Key is: ", key)

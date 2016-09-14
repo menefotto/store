@@ -3,18 +3,18 @@
 // containing three methods Get Put and Delete
 // anything that satisfy this interface can be used
 // and has to be used during the graph datatype initialization
-// The MapBackEnd type exposed is an in memory backed db implementation
+// The Mem type exposed is an in memory backed db implementation
 // and it's used for testing any database has to implement this methods
 // to satisfy the interface and can be used as a backend
 // One note on the Del method in case of failure of that
 // is key not found is should not return anything or do
-// anything much like the MapBackEnd type in the go language itself.
-// BoltBackEnd provides an transactional
+// anything much like the Mem type in the go language itself.
+// Bolt provides an transactional
 // backend implemented using boltdb provides 5 methods
 // Get, Put, Del, Open and Close, three of these are required
 // by the db interface
 
-package gbackends
+package backends
 
 import (
 	"bytes"
@@ -34,21 +34,21 @@ type DB interface {
 
 var ErrNotFound error = fmt.Errorf("key not found\n")
 
-type BoltBackEnd struct {
+type Bolt struct {
 	Db         *bolt.DB
 	bucketname string
 }
 
-func NewBoltBackEnd(dbname string) (*BoltBackEnd, error) {
-	return getBoltBackEnd(dbname)
+func NewBolt(dbname string) (*Bolt, error) {
+	return getBolt(dbname)
 }
 
-func GetBoltBackEnd(dbname string) (*BoltBackEnd, error) {
-	return getBoltBackEnd(dbname)
+func GetBolt(dbname string) (*Bolt, error) {
+	return getBolt(dbname)
 }
 
-func getBoltBackEnd(dbname string) (*BoltBackEnd, error) {
-	var db BoltBackEnd
+func getBolt(dbname string) (*Bolt, error) {
+	var db Bolt
 	err := db.Open(dbname)
 	if err != nil {
 		return nil, err
@@ -56,7 +56,7 @@ func getBoltBackEnd(dbname string) (*BoltBackEnd, error) {
 	return &db, nil
 }
 
-func (b *BoltBackEnd) Open(name string) error {
+func (b *Bolt) Open(name string) error {
 	var err error
 	b.Db, err = bolt.Open(name, 0600, nil)
 	if err != nil {
@@ -76,14 +76,14 @@ func (b *BoltBackEnd) Open(name string) error {
 	return nil
 }
 
-func (b *BoltBackEnd) Close() error {
+func (b *Bolt) Close() error {
 	if b.Db != nil {
 		return b.Db.Close()
 	}
 	return nil
 }
 
-func (b *BoltBackEnd) Get(value []byte) (result []byte, err error) {
+func (b *Bolt) Get(value []byte) (result []byte, err error) {
 	// err assigned directly to err named return value
 	err = b.Db.View(func(tx *bolt.Tx) error {
 		buck := tx.Bucket([]byte(b.bucketname))
@@ -98,7 +98,7 @@ func (b *BoltBackEnd) Get(value []byte) (result []byte, err error) {
 	return
 }
 
-func (b *BoltBackEnd) Put(key []byte, value []byte) error {
+func (b *Bolt) Put(key []byte, value []byte) error {
 	err := b.Db.Update(func(tx *bolt.Tx) error {
 		buck := tx.Bucket([]byte(b.bucketname))
 		// not checking since it alway exist
@@ -112,20 +112,20 @@ func (b *BoltBackEnd) Put(key []byte, value []byte) error {
 
 }
 
-func (b *BoltBackEnd) Del(key []byte) {
+func (b *Bolt) Del(key []byte) {
 	_ = b.Db.Update(func(tx *bolt.Tx) error {
 		buck := tx.Bucket([]byte(b.bucketname))
 		// not checking for error since it always exist
 		buck.Delete(key)
 		// not checking for error since it always exist
 		// and in case it doesn't we why raise an error
-		// follow the MapBackEnd delete api
+		// follow the Mem delete api
 		return nil
 	})
 	return
 }
 
-func (b *BoltBackEnd) Len() (value int) {
+func (b *Bolt) Len() (value int) {
 	// err is not taken into consideration since it always nil
 	_ = b.Db.View(func(tx *bolt.Tx) error {
 		buck := tx.Bucket([]byte(b.bucketname))
@@ -138,7 +138,7 @@ func (b *BoltBackEnd) Len() (value int) {
 	return
 }
 
-func (b *BoltBackEnd) Query(name []byte, t string) (result map[string][]byte, err error) {
+func (b *Bolt) Query(name []byte, t string) (result map[string][]byte, err error) {
 	err = b.Db.View(func(tx *bolt.Tx) error {
 		buck := tx.Bucket([]byte(b.bucketname))
 		// got the cursor now iterates over the k, values
@@ -168,15 +168,15 @@ func (b *BoltBackEnd) Query(name []byte, t string) (result map[string][]byte, er
 	return
 }
 
-type MapBackEnd struct {
+type Mem struct {
 	Db map[string]string
 }
 
-func NewMapBackEnd() *MapBackEnd {
-	return &MapBackEnd{Db: make(map[string]string, 0)}
+func NewMap() *Mem {
+	return &Mem{Db: make(map[string]string, 0)}
 }
 
-func (m *MapBackEnd) Get(key []byte) ([]byte, error) {
+func (m *Mem) Get(key []byte) ([]byte, error) {
 	value, ok := m.Db[string(key)]
 	if ok {
 		return []byte(value), nil
@@ -184,24 +184,24 @@ func (m *MapBackEnd) Get(key []byte) ([]byte, error) {
 	return nil, ErrNotFound
 }
 
-func (m *MapBackEnd) Put(key []byte, value []byte) error {
+func (m *Mem) Put(key []byte, value []byte) error {
 	m.Db[string(key)] = string(value)
-	// always return nil it cannot fail if it fails MapBackEnd implementaion
+	// always return nil it cannot fail if it fails Mem implementaion
 	// is going to panic no point double check again
 	return nil
 
 }
 
-func (m *MapBackEnd) Del(key []byte) {
+func (m *Mem) Del(key []byte) {
 	delete(m.Db, string(key))
 }
 
-func (m *MapBackEnd) Close() error {
+func (m *Mem) Close() error {
 
 	// does nothing here to satisfy the DB interface
 	return nil
 }
 
-func (m *MapBackEnd) Query(key []byte, str string) (map[string][]byte, error) {
+func (m *Mem) Query(key []byte, str string) (map[string][]byte, error) {
 	return nil, errors.New("not implemented")
 }

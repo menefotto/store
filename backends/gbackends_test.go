@@ -1,12 +1,12 @@
-package gbackends
+package backends
 
 import (
 	"os"
 	"testing"
 )
 
-func TestBoltBackEnd(t *testing.T) {
-	db, err := NewBoltBackEnd("test.db")
+func TestBolt(t *testing.T) {
+	db, err := NewBolt("test.db")
 	if err != nil {
 		t.Error(err)
 	}
@@ -49,8 +49,8 @@ func TestBoltBackEnd(t *testing.T) {
 	os.Remove("test.db")
 }
 
-func TestMapBackEnd(t *testing.T) {
-	m := NewMapBackEnd()
+func TestMem(t *testing.T) {
+	m := NewMap()
 	err := m.Put([]byte("carlo"), []byte("locci"))
 	if err != nil {
 		t.Fatal(err)
@@ -77,7 +77,7 @@ func TestMapBackEnd(t *testing.T) {
 }
 
 func TestGetBoltBackENoPermission(t *testing.T) {
-	_, err := GetBoltBackEnd("/var/no.db")
+	_, err := GetBolt("/var/no.db")
 	if err == nil {
 		t.Error(err)
 	}

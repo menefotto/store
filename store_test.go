@@ -8,11 +8,11 @@ import (
 	"testing"
 
 	"github.com/sonic/lib/dbtograph/pkgtoinfo"
-	"github.com/sonic/lib/store/gbackends"
+	"github.com/sonic/lib/store/backends"
 )
 
 func TestStore(t *testing.T) {
-	var db gbackends.BoltBackEnd
+	var db backends.Bolt
 	err := db.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
@@ -38,7 +38,7 @@ func TestStore(t *testing.T) {
 }
 
 func TestStoreAddDelGet(t *testing.T) {
-	var db gbackends.BoltBackEnd
+	var db backends.Bolt
 	err := db.Open("test.db")
 	if err != nil {
 		t.Error(err)
@@ -100,7 +100,7 @@ func TestStoreAddDelGet(t *testing.T) {
 }
 
 func TestStoreMemory(t *testing.T) {
-	db := gbackends.NewMapBackEnd()
+	db := backends.NewMap()
 	g := New(db)
 	defer g.Close()
 	_ = g.Add("carlo", []byte("locci"))
@@ -125,7 +125,7 @@ func TestStoreMemory(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	dbnew := gbackends.NewMapBackEnd()
+	dbnew := backends.NewMap()
 	err = UnmarshalFromDisk(dbnew)
 	if err != nil {
 		t.Fatal(err)
