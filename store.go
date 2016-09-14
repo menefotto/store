@@ -87,7 +87,7 @@ func (g *Store) Add(key string, value interface{}) error {
 		return err
 	}
 
-	err = g.db.Put([]byte(key), compress.SnappyCompress(data))
+	err = g.db.Put([]byte(key), compress.Snappy(data))
 	if err != nil {
 		return err
 	}
