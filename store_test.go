@@ -7,7 +7,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/sonic/lib/dbtograph/pkgtoinfo"
+	"github.com/sonic/lib/dbtostore/pkgtoinfo"
 	"github.com/sonic/lib/store/backends"
 )
 
