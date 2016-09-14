@@ -15,7 +15,7 @@ import (
 
 	"github.com/sonic/lib/errors"
 	"github.com/sonic/lib/store/gbackends"
-	"github.com/sonic/lib/utils/snappyutils"
+	"github.com/sonic/lib/utils/compressutils"
 )
 
 // defines the StoreItem interface
@@ -86,7 +86,7 @@ func (g *Store) Add(key string, value interface{}) error {
 		return err
 	}
 
-	err = g.db.Put([]byte(key), snappyutils.Compress(data))
+	err = g.db.Put([]byte(key), compressutils.SnappyCompress(data))
 	if err != nil {
 		return err
 	}
@@ -100,7 +100,7 @@ func (g *Store) Get(key string) (StoreItem, error) {
 		return nil, err
 	}
 
-	data, err := snappyutils.DeCompress(val)
+	data, err := compressutils.SnappyDecompress(val)
 	if err != nil {
 		return nil, err
 	}
