@@ -16,7 +16,7 @@ import (
 
 	"github.com/sonic/lib/errors"
 	"github.com/sonic/lib/store/backends"
-	"github.com/sonic/lib/utils/compressutils"
+	"github.com/sonic/lib/utils/compress"
 )
 
 // defines the StoreItem interface
@@ -87,7 +87,7 @@ func (g *Store) Add(key string, value interface{}) error {
 		return err
 	}
 
-	err = g.db.Put([]byte(key), compressutils.SnappyCompress(data))
+	err = g.db.Put([]byte(key), compress.SnappyCompress(data))
 	if err != nil {
 		return err
 	}
@@ -101,7 +101,7 @@ func (g *Store) Get(key string) (StoreItem, error) {
 		return nil, err
 	}
 
-	data, err := compressutils.SnappyDecompress(val)
+	data, err := compress.SnappyDecompress(val)
 	if err != nil {
 		return nil, err
 	}
@@ -128,7 +128,7 @@ func (g *Store) Find(query string) (map[string]StoreItem, error) {
 
 	anymap := make(map[string]StoreItem, 0)
 	for k, val := range results {
-		data, err := compressutils.SnappyDecompress(val)
+		data, err := compress.SnappyDecompress(val)
 		if err != nil {
 			return nil, err
 		}
