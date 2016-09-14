@@ -3,6 +3,7 @@ package store
 import (
 	"bytes"
 	"compress/gzip"
+	"fmt"
 	"os"
 	"testing"
 
@@ -16,15 +17,14 @@ func TestStore(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer db.Close()
-	db.Put([]byte("stovari"), []byte("miao"))
 
 	g := New(&db)
 
+	_ = g.Add("stovari", []byte("miao"))
 	_ = g.Add("carlo", []byte("ciao"))
 
 	_, err = g.Get("stovari")
-	if err == nil {
+	if err != nil {
 		t.Fatal(err)
 	}
 	_, err = g.Get("storie")
@@ -43,10 +43,18 @@ func TestStoreAddDelGet(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	defer db.Close()
 
 	g := New(&db)
+	defer g.Close()
+
 	_ = g.Add("carlo", []byte("ciao"))
+
+	res, err := g.Find("c*")
+	if err != nil {
+		t.Error(err)
+	}
+
+	fmt.Printf("%+v\n", res)
 
 	v, err := g.Get("carlo")
 	if err != nil {
@@ -65,7 +73,7 @@ func TestStoreAddDelGet(t *testing.T) {
 
 	g.Del("carlo")
 	if db.Len() != 0 {
-		t.Error("Failed to delete the key/value")
+		t.Errorf("Failed to delete the key/value key num is %d\n", db.Len())
 	}
 
 	err = PrettyPrint(db)
