@@ -6,6 +6,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/sonic/lib/dbtograph/pkgtoinfo"
 	"github.com/sonic/lib/store/gbackends"
 )
 
@@ -19,6 +20,7 @@ func TestStore(t *testing.T) {
 	db.Put([]byte("stovari"), []byte("miao"))
 
 	g := New(&db)
+
 	_ = g.Add("carlo", []byte("ciao"))
 
 	_, err = g.Get("stovari")
@@ -46,9 +48,19 @@ func TestStoreAddDelGet(t *testing.T) {
 	g := New(&db)
 	_ = g.Add("carlo", []byte("ciao"))
 
-	_, err = g.Get("carlo")
+	v, err := g.Get("carlo")
 	if err != nil {
 		t.Errorf("Error in Get %v\n", err)
+	}
+
+	var ori []byte
+	_, err = v.Data(&ori)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if string(ori) != "ciao" {
+		t.Fatal("boh dont match")
 	}
 
 	g.Del("carlo")
@@ -59,6 +71,22 @@ func TestStoreAddDelGet(t *testing.T) {
 	err = PrettyPrint(db)
 	if err == nil {
 		t.Error("should have not printed")
+	}
+	var info pkgtoinfo.PackageInfo
+	var info3 pkgtoinfo.PackageInfo
+
+	info.Filename = "tar-193.4.xz"
+	_ = g.Add("tar", info)
+	fname, err := g.Get("tar")
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = fname.Data(&info3)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if info.Filename != info3.Filename {
+		t.Fatal("missmatch shit")
 	}
 	os.Remove("test.db")
 }
