@@ -1,6 +1,6 @@
-Package graph
+Package store
 
-This package implements a simple graph with two backends, an in memory backend 
+This package implements a simple storage with two backends, an in memory backend 
 and a persistent backends using boltdb.
 To implement another backend using a database of your choice or data structure, 
 you have to implement the DB interface.
