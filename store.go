@@ -12,6 +12,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/sonic/lib/errors"
 	"github.com/sonic/lib/store/gbackends"
@@ -108,13 +109,40 @@ func (g *Store) Get(key string) (StoreItem, error) {
 	return &Any{Buffer: data}, nil
 }
 
+func (g *Store) Find(query string) (map[string]StoreItem, error) {
+	var queryt string
+
+	switch idx := strings.Index(query, "*"); {
+	case idx == 0:
+		queryt = "s"
+	case idx == len(query)-1:
+		queryt = "p"
+	default:
+		queryt = "p"
+	}
+
+	results, err := g.db.Query([]byte(query), queryt)
+	if err != nil {
+		return nil, err
+	}
+
+	anymap := make(map[string]StoreItem, 0)
+	for k, val := range results {
+		data, err := compressutils.SnappyDecompress(val)
+		if err != nil {
+			return nil, err
+		}
+		results[k] = nil
+
+		anymap[k] = &Any{Buffer: data}
+	}
+
+	return anymap, nil
+}
+
 func (g *Store) Del(key string) {
 	g.db.Del([]byte(key))
 
-}
-
-func (g *Store) BackEnd() gbackends.DB {
-	return g.db
 }
 
 func (g *Store) Close() {
@@ -125,6 +153,10 @@ func (g *Store) Close() {
 	default:
 		return
 	}
+}
+
+func (g *Store) BackEnd() gbackends.DB {
+	return g.db
 }
 
 //helper functions for debugging memory backend
